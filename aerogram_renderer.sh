@@ -68,7 +68,8 @@ handler() {
 		    fi
 		    echo -ne "\033[2K"
 			echo -ne "\033[E"
-			colorprint `red "$FROMUSER"`: "$LINE"
+			FILENAME=`basename $FILE`
+			colorprint '[' "\b${FILENAME:6:2}:${FILENAME:9:2}" '\b]' `red "$FROMUSER"`: "$LINE"
 			echo -ne "$CONTENT"
 		done < $FILE
 		FILENAME=`basename $FILE`
@@ -142,7 +143,6 @@ while : ; do
 				fi
 			# handle regular input
 			else
-				#TODO: implement spinner
 				> ~/.aerogram/buffer.txt
 				echo "/STARTOFMESSAGE/" > ~/.aerogram/buffer.txt
 				echo "/FROM/ `whoami`" >> ~/.aerogram/buffer.txt
@@ -151,14 +151,19 @@ while : ; do
 				DATE=`date +%H-%M-%S-%Y-%m-%d`
 				if [[ $RECV -eq 0 ]] ; then
 					if [[ "$PORT" == "" ]] ; then
-						scp -q ~/.aerogram/buffer.txt $USER@$IP:$PTH/.aerogram/new_$DATE.txt
+						echo -ne "  "
+						scp -q ~/.aerogram/buffer.txt $USER@$IP:$PTH/.aerogram/new_$DATE.txt & \
+						while [ "$(ps a | awk '{print $1}' | grep $!)" ] ; do for X in '-' '/' '|' '\'; do echo -en "\b$X"; sleep 0.1; done; done
+						
 					else
-						scp -q -P $PORT ~/.aerogram/buffer.txt $USER@$IP:$PTH/.aerogram/new_$DATE.txt
+						echo -n "  "
+						scp -q -P $PORT ~/.aerogram/buffer.txt $USER@$IP:$PTH/.aerogram/new_$DATE.txt & \
+						while [ "$(ps a | awk '{print $1}' | grep $!)" ] ; do for X in '-' '/' '|' '\'; do echo -en "\b$X"; sleep 0.1; done; done
 					fi
 				fi
 				echo -ne "\033[2K"
 				echo -ne "\033[E"
-				colorprint `$COLOR "$USER"`: "$CONTENT"
+				colorprint '[' "\b`date +%H:%M`" '\b]' `$COLOR $(whoami)`: "$CONTENT"
 				CONTENT=""
 			fi
 		else
