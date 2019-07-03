@@ -30,6 +30,8 @@ Optional arguments:
 
 Notes:
   - both you and the RECEIVER must be running aerogram.sh
+  - you don't need to know RECEIVER's ssh credentials, but you do need to know
+    USER's ssh credentials
   - it is HIGHLY recommended that you add your SSH keys to your RECEIVER so you
     don't have to type in your password every time you send a message
 EndOfUsage
