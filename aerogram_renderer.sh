@@ -58,7 +58,7 @@ white() {
 received_message() {
 	FILES=( ~/.aerogram/ready_*.txt )
 	while [[ "${#FILES[@]}" -gt 0 ]] ; do
-		if [[ "${FILES[@]}" == "/Users/wcarhart/.aerogram/ready_*.txt" ]] ; then
+		if [[ "${FILES[@]}" == "$PTH/.aerogram/ready_*.txt" ]] ; then
 			return
 		fi
 		FILE="${FILES[0]}"
