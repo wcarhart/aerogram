@@ -1,5 +1,8 @@
 #!/bin/bash
 
+mkdir -p ~/.aerogram
+chmod 777 ~/.aerogram
+
 shopt -s nullglob
 while : ; do
 	PID=`pgrep -f aerogram_renderer.sh`

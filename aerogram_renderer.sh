@@ -6,11 +6,17 @@ shopt -s nullglob
 CONTENT=""
 COLOR="green"
 mkdir -p ~/.aerogram
+chmod 777 ~/.aerogram
 
 RECEIVER="${1#*=}"
 IP="${2#*=}"
 PORT="${3#*=}"
 USER="${4#*=}"
+PTH=/home/$RECEIVER
+
+if [[ "$USER" == "root" ]] ; then
+	PTH=/root
+fi
 
 grey() {
 	printf "\033[90m$1\033[0m\n"
@@ -116,7 +122,6 @@ while : ; do
 				fi
 			# handle regular input
 			else
-				#TODO: implement send
 				#TODO: implement spinner
 				> ~/.aerogram/buffer.txt
 				echo "/STARTOFMESSAGE/" > ~/.aerogram/buffer.txt
@@ -124,9 +129,9 @@ while : ; do
 				echo "/ENDOFMESSAGE/" >> ~/.aerogram/buffer.txt
 				DATE=`date +%H-%M-%S-%Y-%m-%d`
 				if [[ "$PORT" == "" ]] ; then
-					scp -q ~/.aerogram/buffer.txt $USER@$IP:/home/$RECEIVER/.aerogram/new_$DATE.txt
+					scp -q ~/.aerogram/buffer.txt $USER@$IP:$PTH/.aerogram/new_$DATE.txt
 				else
-					scp -q -P $PORT ~/.aerogram/buffer.txt $USER@$IP:/home/$RECEIVER/.aerogram/new_$DATE.txt
+					scp -q -P $PORT ~/.aerogram/buffer.txt $USER@$IP:$PTH/.aerogram/new_$DATE.txt
 				fi
 				echo -ne "\033[2K"
 				echo -ne "\033[E"
