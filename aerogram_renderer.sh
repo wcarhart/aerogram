@@ -56,7 +56,7 @@ white() {
 
 # handler for when a message is received
 received_message() {
-	FILES=( ~/.aerogram/ready_*.txt)
+	FILES=( ~/.aerogram/ready_*.txt )
 	while [[ "${#FILES[@]}" -gt 0 ]] ; do
 		if [[ "${FILES[@]}" == "/Users/wcarhart/.aerogram/ready_*.txt" ]] ; then
 			return
