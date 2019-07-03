@@ -153,11 +153,11 @@ while : ; do
 					echo -ne "\033[E"
 					if [[ "${OUTPUT[1]}" == "help" ]] ; then
 						colorprint "Available colors are `red red`, `blue blue`, `green green`, `yellow yellow`, `pink pink`, `teal teal`, `white white`, `grey grey`"
-						echo -ne
+						echo
 					else
 						COLOR="${OUTPUT[1]}"
 						colorprint `$COLOR "Changed color to $COLOR"`
-						echo -ne
+						echo
 					fi
 					CONTENT=""
 					echo -ne "$PROMPT"
