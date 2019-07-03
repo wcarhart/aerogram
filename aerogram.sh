@@ -8,19 +8,6 @@ cleanup() {
 	for PID in `pgrep -f aerogram_renderer.sh` ; do kill -9 $PID > /dev/null 2>&1 ; done
 }
 
-# detect os type
-ostype() {
-    OS=`uname -s`
-    case "${OS}" in
-        Linux*)     MACHINE=Linux   ;;
-        Darwin*)    MACHINE=MacOS   ;;
-        CYGWIN*)    MACHINE=Cygwin  ;;
-        MINGW*)     MACHINE=MinGw   ;;
-        *)          MACHINE=UNKNOWN ;;
-    esac
-    echo "$MACHINE"
-}
-
 # usage helper
 usage() {
 	cat << EndOfUsage
@@ -119,8 +106,10 @@ if [[ "${#FILES[@]}" -gt 0 ]] ; then
 	for FILE in "${FILES[@]}" ; do rm $FILE ; done
 fi
 
+echo "Validating your environment..."
+
 # validate shell and operating system
-OS=`ostype`
+OS=`uname -s`
 if [[ "`basename $SHELL`" != "bash" ]] ; then
 	echo "aerogram: err: not supported for this shell"
 	exit 1
@@ -131,22 +120,54 @@ if [[ ! -f /bin/bash ]] && [[ ! -L /bin/bash ]] ; then
 	echo "  ln -sf bash /bin/bash"
 	exit 1
 fi
-if [[ $OS != "Linux" && $OS != "MacOS" ]] ; then
+if [[ $OS != "Linux" && $OS != "Darwin" ]] ; then
 	echo "aerogram: err: not supported for this operating system"
 	exit 1
 fi
 
+printf "\033[A\033[30C\033[92mDONE\033[0m\n"
+echo "Validating receiver's environment..."
+
 # validate that receiver is available
 if [[ $RECV -eq 0 ]] ; then
-	if [[ "$PORT" == "" ]] ; then
-		PERM=`ssh $USER@$IP stat -c "%a" $PTH/.aerogram`
-	else
-		PERM=`ssh $USER@$IP -p $PORT stat -c "%a" $PTH/.aerogram`
-	fi
-	if [[ "$PERM" == "" ]] ; then
-		echo "aerogram: err: ssh/scp refused for $USER on ${PORT:-22}"
-		echo "  Please ensure that ssh/scp is available for $USER on port ${PORT:-22}"
+	if [[ `command -v nc` == "" ]] ; then
+		echo "aerogram: err: netcat is not installed"
+		echo "  aerogram needs netcat to check network connections"
+		echo "  Please install netcat with 'brew/apt-get/yum install nc'"
 		exit 1
+	fi
+
+	PARG=""
+	if [[ "$PORT" != "" ]] ; then
+		PARG="-p $PORT"
+	fi
+
+	# Perform the following checks:
+	#   1. Is ssh available for the recipient?
+	#   2. Does the directory ~/.aerogram exist for the recipient?
+	#   3. Is the directory ~/.aerogram readable and writeable for the recipient?
+
+	# check #1
+	nc -z $IP "${PORT:-22}" > /dev/null 2>&1
+	if [[ $? -ne 0 ]] ; then
+		echo "aerogram: err: ssh/scp refused for IP $IP for port $PORT"
+		exit 1
+	fi
+
+	# check #2
+	ssh $USER@$IP $PARG [ -d $PTH/.aerogram ]
+	if [[ $? -ne 0 ]] ; then
+		echo "aerogram: err: no such directory $IP:$PTH/.aerogram"
+		echo "  Please ask $RECEIVER to run 'mkdir -p $PTH/.aerogram'"
+		echo "  This often occurs the first time you run aerogram.sh"
+		exit 1
+	fi
+
+	# check #3
+	if [[ `ssh $USER@$IP uname -s` == "Linux" ]] ; then
+		PERM=`ssh $USER@$IP $PARG stat -c "%a" $PTH/.aerogram`
+	else
+		PERM=`ssh $USER@$IP $PARG gstat -c "%a" $PTH/.aerogram`
 	fi
 	if [[ "${PERM:2}" != "7" && "${PERM:2}" != "6" ]] ; then
 		echo "aerogram: err: $RECEIVER@$IP:$PTH/.aerogram does not have write permissions"
@@ -155,12 +176,13 @@ if [[ $RECV -eq 0 ]] ; then
 	fi
 fi
 
+printf "\033[A\033[36C\033[92mDONE\033[0m\n"
+echo "Validating dependencies..."
+
 # set commands based on OS
-if [[ $OS == "MacOS" ]] ; then
-	READLINK="greadlink"
+if [[ $OS == "Darwin" ]] ; then
 	STAT="gstat"
 else
-	READLINK="readlink"
 	STAT="stat"
 fi
 
@@ -185,6 +207,8 @@ if [[ "${PERM:0:1}" != "7" ]] ; then
 	echo "  Please run 'chmod +x aerogram_renderer.sh' to fix"
 	exit 1
 fi
+
+printf "\033[A\033[26C\033[92mDONE\033[0m\n"
 
 # run listener in background and renderer in foreground
 ./aerogram_listener.sh &

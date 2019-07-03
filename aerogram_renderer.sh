@@ -129,7 +129,7 @@ custom_command() {
 }
 
 # main send/recv loop
-echo "You are now connected. Type to draft a message, and press Enter to send..."
+echo "You are now connected. Type to draft a message, and press Enter to send!"
 while : ; do
 	while IFS='' read -s -n 1 KEY ; do
 		if [[ "$KEY" == "" ]] ; then
@@ -159,7 +159,7 @@ while : ; do
 					echo -ne "\033[E"
 					CONTENT=""
 				fi
-				
+
 			# handle regular input
 			else
 				> ~/.aerogram/buffer.txt
