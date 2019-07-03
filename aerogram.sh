@@ -145,18 +145,27 @@ if [[ $RECV -eq 0 ]] ; then
 	fi
 
 	# Perform the following checks:
-	#   1. Is ssh available for the recipient?
-	#   2. Does the directory ~/.aerogram exist for the recipient?
-	#   3. Is the directory ~/.aerogram readable and writeable for the recipient?
+	#   1. Is ssh available for the receiving machine?
+	#   2. Can the recipient user receive ssh requests on the receiving machine?
+	#   3. Does the directory ~/.aerogram exist on the receiving machine?
+	#   4. Is the directory ~/.aerogram readable and writeable on the receiving machine?
 
 	# check #1
 	nc -z $IP "${PORT:-22}" > /dev/null 2>&1
 	if [[ $? -ne 0 ]] ; then
-		echo "aerogram: err: ssh/scp refused for IP $IP for port $PORT"
+		echo "aerogram: err: ssh refused for IP $IP for port $PORT"
 		exit 1
 	fi
 
 	# check #2
+	ssh -q $USER@$IP $PARG exit
+	if [[ $? -ne 0 ]] ; then
+		echo "aerogram: err: ssh is not available for $USER on $IP"
+		echo "  Please ensure that $USER can ssh into $IP successfully"
+		exit 1
+	fi
+
+	# check #3
 	ssh $USER@$IP $PARG [ -d $PTH/.aerogram ]
 	if [[ $? -ne 0 ]] ; then
 		echo "aerogram: err: no such directory $IP:$PTH/.aerogram"
@@ -165,7 +174,7 @@ if [[ $RECV -eq 0 ]] ; then
 		exit 1
 	fi
 
-	# check #3
+	# check #4
 	if [[ `ssh $USER@$IP uname -s` == "Linux" ]] ; then
 		PERM=`ssh $USER@$IP $PARG stat -c "%a" $PTH/.aerogram`
 	else
