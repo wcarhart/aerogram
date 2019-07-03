@@ -1,11 +1,13 @@
 #!/bin/bash
 
-trap handler SIGUSR1
+trap received_message SIGUSR1
 shopt -s nullglob
 
+# default settings
 CONTENT=""
 COLOR="green"
 
+# parse options
 RECEIVER="${1#*=}"
 IP="${2#*=}"
 PORT="${3#*=}"
@@ -21,13 +23,13 @@ if [[ "$USER" == "root" ]] ; then
 	PTH=/root
 fi
 
+# color printing functions
 colorprint() {
 	for ARG in $@ ; do 
 		printf "$ARG "
 	done
 	printf "\n"
 }
-
 grey() {
 	printf "\033[90m$1\033[0m"
 }
@@ -53,9 +55,8 @@ white() {
 	printf "\033[97m$1\033[0m"
 }
 
-handler() {
-	# TODO: implement 'FROM' field
-	# TODO: implement 'TIME' field (message timestamp)
+# handler for when a message is received
+received_message() {
 	FILES=( ~/.aerogram/ready_*.txt)
 	while [[ "${#FILES[@]}" -gt 0 ]] ; do
 		FILE="${FILES[0]}"
@@ -82,6 +83,7 @@ handler() {
 	done
 }
 
+# handler for custom commands
 custom_command() {
 	# currently supported custom commands: /color, /exit, /help
 	# return values:
@@ -126,6 +128,7 @@ custom_command() {
 	echo "$RET_VAL $RET_ARG"
 }
 
+# main send/recv loop
 echo "You are now connected. Type to draft a message, and press Enter to send..."
 while : ; do
 	while IFS='' read -s -n 1 KEY ; do
@@ -156,6 +159,7 @@ while : ; do
 					echo -ne "\033[E"
 					CONTENT=""
 				fi
+				
 			# handle regular input
 			else
 				> ~/.aerogram/buffer.txt
