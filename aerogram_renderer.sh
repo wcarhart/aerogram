@@ -57,10 +57,10 @@ white() {
 # handler for when a message is received
 received_message() {
 	FILES=( ~/.aerogram/ready_*.txt)
-	if [[ "${FILES[@]}" == "/Users/wcarhart/.aerogram/ready_*.txt" ]] ; then
-		return
-	fi
 	while [[ "${#FILES[@]}" -gt 0 ]] ; do
+		if [[ "${FILES[@]}" == "/Users/wcarhart/.aerogram/ready_*.txt" ]] ; then
+			return
+		fi
 		FILE="${FILES[0]}"
 		while IFS= read -r LINE ; do
 		    if [[ "$LINE" == "/STARTOFMESSAGE/" ]] ; then
