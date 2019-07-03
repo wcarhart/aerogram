@@ -4,6 +4,7 @@ trap received_message SIGUSR1
 
 # default settings
 CONTENT=""
+PROMPT="> "
 COLOR="green"
 
 # parse options
@@ -77,7 +78,7 @@ received_message() {
 			echo -ne "\033[E"
 			FILENAME=`basename $FILE`
 			colorprint '[' "\b${FILENAME:6:2}:${FILENAME:9:2}" '\b]' `red "$FROMUSER"`: "$LINE"
-			echo -ne "$CONTENT"
+			echo -ne "$PROMPT$CONTENT"
 		done < $FILE
 		FILENAME=`basename $FILE`
 		mv $FILE ~/.aerogram/done"${FILENAME##ready}"
@@ -133,6 +134,7 @@ custom_command() {
 # main send/recv loop
 printf "\033[A\033[24C\033[92mDONE\033[0m\n"
 echo "You are now connected. Type to draft a message, and press Enter to send!"
+echo -ne "$PROMPT"
 while : ; do
 	while IFS='' read -s -r -n 1 KEY ; do
 		if [[ "$KEY" == "" ]] ; then
@@ -146,6 +148,7 @@ while : ; do
 					echo -ne "\033[E"
 					colorprint `$COLOR "Changed color to $COLOR"`
 					CONTENT=""
+					echo -ne "$PROMPT"
 				elif [[ $RET_VAL -eq 2 ]] ; then
 					echo
 					exit 0
@@ -157,10 +160,12 @@ while : ; do
 					echo -e "\t/help        - display this help menu"
 					echo -e "\t/exit        - exit the program"
 					CONTENT=""
+					echo -ne "$PROMPT"
 				else
 					echo -ne "\033[2K"
 					echo -ne "\033[E"
 					CONTENT=""
+					echo -ne "$PROMPT"
 				fi
 
 			# handle regular "Enter" keypress
@@ -187,6 +192,7 @@ while : ; do
 				echo -ne "\033[E"
 				colorprint "[" "\b`date +%H:%M`" "\b]" "`$COLOR $DISPLAYNAME`:" "$CONTENT"
 				CONTENT=""
+				echo -ne "$PROMPT"
 			fi
 		elif [[ "$KEY" == $'\x7f' ]] ; then
 			# handle backspaces
