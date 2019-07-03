@@ -26,9 +26,8 @@ fi
 # color printing functions
 colorprint() {
 	for ARG in $@ ; do 
-		printf "$ARG "
+		printf -- "$ARG "
 	done
-	printf "\n"
 }
 gray() {
 	printf "\033[90m$1\033[0m"
@@ -80,7 +79,8 @@ received_message() {
 		    echo -ne "\033[2K"
 			echo -ne "\033[E"
 			FILENAME=`basename $FILE`
-			colorprint '[' "\b${FILENAME:6:2}:${FILENAME:9:2}" '\b]' `red "$FROMUSER"`: "$LINE"
+			colorprint "[" "\b${FILENAME:6:2}:${FILENAME:9:2}" "\b]" "`red "$FROMUSER"`:"
+			echo "$LINE"
 			echo -ne "$PROMPT$CONTENT"
 		done < $FILE
 		FILENAME=`basename $FILE`
@@ -153,9 +153,11 @@ while : ; do
 					echo -ne "\033[E"
 					if [[ "${OUTPUT[1]}" == "help" ]] ; then
 						colorprint "Available colors are `red red`, `blue blue`, `green green`, `yellow yellow`, `pink pink`, `teal teal`, `white white`, `grey grey`"
+						echo -ne
 					else
 						COLOR="${OUTPUT[1]}"
 						colorprint `$COLOR "Changed color to $COLOR"`
+						echo -ne
 					fi
 					CONTENT=""
 					echo -ne "$PROMPT"
@@ -200,7 +202,8 @@ while : ; do
 				fi
 				echo -ne "\033[2K"
 				echo -ne "\033[E"
-				colorprint "[" "\b`date +%H:%M`" "\b]" "`$COLOR $DISPLAYNAME`:" "$CONTENT"
+				colorprint "[" "\b`date +%H:%M`" "\b]" "`$COLOR $DISPLAYNAME`:" 
+				echo "$CONTENT"
 				CONTENT=""
 				echo -ne "$PROMPT"
 			fi
