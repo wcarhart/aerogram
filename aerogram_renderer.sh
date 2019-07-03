@@ -129,9 +129,10 @@ custom_command() {
 }
 
 # main send/recv loop
+printf "\033[A\033[24C\033[92mDONE\033[0m\n"
 echo "You are now connected. Type to draft a message, and press Enter to send!"
 while : ; do
-	while IFS='' read -s -n 1 KEY ; do
+	while IFS='' read -s -r -n 1 KEY ; do
 		if [[ "$KEY" == "" ]] ; then
 			# handle custom commands
 			if [[ "${CONTENT:0:1}" == "/" ]] ; then
@@ -160,7 +161,7 @@ while : ; do
 					CONTENT=""
 				fi
 
-			# handle regular input
+			# handle regular "Enter" keypress
 			else
 				> ~/.aerogram/buffer.txt
 				echo "/STARTOFMESSAGE/" > ~/.aerogram/buffer.txt
@@ -182,10 +183,17 @@ while : ; do
 				fi
 				echo -ne "\033[2K"
 				echo -ne "\033[E"
-				colorprint '[' "\b`date +%H:%M`" '\b]' `$COLOR $DISPLAYNAME`: "$CONTENT"
+				colorprint "[" "\b`date +%H:%M`" "\b]" "`$COLOR $DISPLAYNAME`": $CONTENT
 				CONTENT=""
 			fi
+		elif [[ "$KEY" == $'\x7f' ]] ; then
+			# handle backspaces
+			if [[ "${#CONTENT}" -gt 0 ]] ; then
+				CONTENT="${CONTENT:0:(( ${#CONTENT} - 1 ))}"
+				echo -ne "\b \b"
+			fi
 		else
+			# handle everything else
 			CONTENT="$CONTENT$KEY"
 			echo -ne "$KEY"
 		fi
