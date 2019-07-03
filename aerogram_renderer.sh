@@ -1,7 +1,6 @@
 #!/bin/bash
 
 trap received_message SIGUSR1
-shopt -s nullglob
 
 # default settings
 CONTENT=""
@@ -58,6 +57,9 @@ white() {
 # handler for when a message is received
 received_message() {
 	FILES=( ~/.aerogram/ready_*.txt)
+	if [[ "${FILES[@]}" == "/Users/wcarhart/.aerogram/ready_*.txt" ]] ; then
+		return
+	fi
 	while [[ "${#FILES[@]}" -gt 0 ]] ; do
 		FILE="${FILES[0]}"
 		while IFS= read -r LINE ; do
@@ -183,7 +185,7 @@ while : ; do
 				fi
 				echo -ne "\033[2K"
 				echo -ne "\033[E"
-				colorprint "[" "\b`date +%H:%M`" "\b]" "`$COLOR $DISPLAYNAME`": $CONTENT
+				colorprint "[" "\b`date +%H:%M`" "\b]" "`$COLOR $DISPLAYNAME`:" "$CONTENT"
 				CONTENT=""
 			fi
 		elif [[ "$KEY" == $'\x7f' ]] ; then
