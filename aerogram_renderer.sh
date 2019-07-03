@@ -11,8 +11,12 @@ IP="${2#*=}"
 PORT="${3#*=}"
 USER="${4#*=}"
 RECV="${5#*=}"
-PTH=/home/$RECEIVER
+DISPLAYNAME="${6#*=}"
+if [[ "$DISPLAYNAME" == "" ]] ; then
+	DISPLAYNAME=`whoami`
+fi
 
+PTH=/home/$RECEIVER
 if [[ "$USER" == "root" ]] ; then
 	PTH=/root
 fi
@@ -145,7 +149,7 @@ while : ; do
 			else
 				> ~/.aerogram/buffer.txt
 				echo "/STARTOFMESSAGE/" > ~/.aerogram/buffer.txt
-				echo "/FROM/ `whoami`" >> ~/.aerogram/buffer.txt
+				echo "/FROM/ $DISPLAYNAME" >> ~/.aerogram/buffer.txt
 				echo "$CONTENT" >> ~/.aerogram/buffer.txt
 				echo "/ENDOFMESSAGE/" >> ~/.aerogram/buffer.txt
 				DATE=`date +%H-%M-%S-%Y-%m-%d`
@@ -163,7 +167,7 @@ while : ; do
 				fi
 				echo -ne "\033[2K"
 				echo -ne "\033[E"
-				colorprint '[' "\b`date +%H:%M`" '\b]' `$COLOR $(whoami)`: "$CONTENT"
+				colorprint '[' "\b`date +%H:%M`" '\b]' `$COLOR $DISPLAYNAME`: "$CONTENT"
 				CONTENT=""
 			fi
 		else

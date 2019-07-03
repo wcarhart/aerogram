@@ -27,7 +27,7 @@ usage() {
 Send messages to remote users via SSH/SCP
 
 Usage:
-  aerogram.sh RECEIVER@IP [-h/--help] [-p/--port PORT] [-u/--user USER] [-r/--recv]
+  aerogram.sh RECEIVER@IP [-h/--help] [-p/--port PORT] [-u/--user USER] [-r/--recv] [-d/--disp NAME]
 
 Required arguments:
   RECEIVER        - the username for the user you'd like to chat with
@@ -36,9 +36,10 @@ Required arguments:
 Optional arguments:
   -h, --help      - display this help menu and exit
   -p, --port PORT - the port to use (default is '22')
-  -u, --user USER - the name of the user you'd like to login as 
+  -u, --user USER - the name of the user you'd like to ssh login as 
                     (default is '`whoami`')
   -r, --recv      - run aerogram in receive-only mode, where you can only receive messages
+  -d, --disp NAME - your display name (default is `whoami`)
 
 Notes:
   - both you and the RECEIVER must be running aerogram.sh
@@ -68,6 +69,7 @@ RECEIVER="${1%@*}"
 IP="${1#*@}"
 PORT=""
 USER=`whoami`
+DISP=""
 shift
 
 while [[ $# -gt 0 ]] ; do
@@ -88,6 +90,11 @@ while [[ $# -gt 0 ]] ; do
 			;;
 		-r|--recv)
 			RECV=1
+			shift
+			;;
+		-d|--disp)
+			DISP="$2"
+			shift
 			shift
 			;;
 		*)
@@ -181,4 +188,4 @@ fi
 
 # run listener in background and renderer in foreground
 ./aerogram_listener.sh &
-./aerogram_renderer.sh "RECEIVER=$RECEIVER" "IP=$IP" "PORT=$PORT" "USER=$USER" "RECV=$RECV"
+./aerogram_renderer.sh "RECEIVER=$RECEIVER" "IP=$IP" "PORT=$PORT" "USER=$USER" "RECV=$RECV" "DISP=$DISP"
