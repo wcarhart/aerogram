@@ -5,42 +5,48 @@ shopt -s nullglob
 
 CONTENT=""
 COLOR="green"
-mkdir -p ~/.aerogram
-chmod 777 ~/.aerogram
 
 RECEIVER="${1#*=}"
 IP="${2#*=}"
 PORT="${3#*=}"
 USER="${4#*=}"
+RECV="${5#*=}"
 PTH=/home/$RECEIVER
 
 if [[ "$USER" == "root" ]] ; then
 	PTH=/root
 fi
 
+colorprint() {
+	for ARG in $@ ; do 
+		printf "$ARG "
+	done
+	printf "\n"
+}
+
 grey() {
-	printf "\033[90m$1\033[0m\n"
+	printf "\033[90m$1\033[0m"
 }
 red() {
-	printf "\033[91m$1\033[0m\n"
+	printf "\033[91m$1\033[0m"
 }
 green() {
-	printf "\033[92m$1\033[0m\n"
+	printf "\033[92m$1\033[0m"
 }
 yellow() {
-	printf "\033[93m$1\033[0m\n"
+	printf "\033[93m$1\033[0m"
 }
 blue() {
-	printf "\033[94m$1\033[0m\n"
+	printf "\033[94m$1\033[0m"
 }
 pink() {
-	printf "\033[95m$1\033[0m\n"
-}
-white() {
-	printf "\033[97m$1\033[0m\n"
+	printf "\033[95m$1\033[0m"
 }
 teal() {
-	printf "\033[96m$1\033[0m\n"
+	printf "\033[96m$1\033[0m"
+}
+white() {
+	printf "\033[97m$1\033[0m"
 }
 
 handler() {
@@ -56,9 +62,13 @@ handler() {
 		    if [[ "$LINE" == "/ENDOFMESSAGE/" ]] ; then
 		    	break
 		    fi
+		    if [[ "$LINE" == /FROM/* ]] ; then
+		    	FROMUSER="${LINE#/FROM/ *}"
+		    	continue
+		    fi
 		    echo -ne "\033[2K"
 			echo -ne "\033[E"
-			red "$LINE"
+			colorprint `red "$FROMUSER"`: "$LINE"
 			echo -ne "$CONTENT"
 		done < $FILE
 		FILENAME=`basename $FILE`
@@ -68,37 +78,44 @@ handler() {
 }
 
 custom_command() {
-	CHANGE=0
+	# currently supported custom commands: /color, /exit
+	# return values:
+	#   RET_VAL=0 --> return (do nothing)
+	#   RET_VAL=1 --> change color to RET_ARG
+	#   RET_VAL=2 --> exit
+	RET_VAL=0
 	COMM="${CONTENT% *}"
 	ARG="${CONTENT#* }"
 	if [[ "$COMM" == "/color" ]] ; then
 		if [[ `echo "$ARG" | tr '[:upper:]' '[:lower:]'` == "grey" ]] ; then
-			COLOR="grey"
-			CHANGE=1
+			RET_ARG="grey"
+			RET_VAL=1
 		elif [[ `echo "$ARG" | tr '[:upper:]' '[:lower:]'` == "red" ]] ; then
-			COLOR="red"
-			CHANGE=1
+			RET_ARG="red"
+			RET_VAL=1
 		elif [[ `echo "$ARG" | tr '[:upper:]' '[:lower:]'` == "green" ]] ; then
-			COLOR="green"
-			CHANGE=1
+			RET_ARG="green"
+			RET_VAL=1
 		elif [[ `echo "$ARG" | tr '[:upper:]' '[:lower:]'` == "yellow" ]] ; then
-			COLOR="yellow"
-			CHANGE=1
+			RET_ARG="yellow"
+			RET_VAL=1
 		elif [[ `echo "$ARG" | tr '[:upper:]' '[:lower:]'` == "blue" ]] ; then
-			COLOR="blue"
-			CHANGE=1
+			RET_ARG="blue"
+			RET_VAL=1
 		elif [[ `echo "$ARG" | tr '[:upper:]' '[:lower:]'` == "pink" ]] ; then
-			COLOR="pink"
-			CHANGE=1
+			RET_ARG="pink"
+			RET_VAL=1
 		elif [[ `echo "$ARG" | tr '[:upper:]' '[:lower:]'` == "white" ]] ; then
-			COLOR="white"
-			CHANGE=1
+			RET_ARG="white"
+			RET_VAL=1
 		elif [[ `echo "$ARG" | tr '[:upper:]' '[:lower:]'` == "teal" ]] ; then
-			COLOR="teal"
-			CHANGE=1
+			RET_ARG="teal"
+			RET_VAL=1
 		fi
+	elif [[ "$COMM" == "/exit" ]] ; then
+		RET_VAL=2
 	fi
-	echo "$CHANGE $COLOR"
+	echo "$RET_VAL $RET_ARG"
 }
 
 echo "Starting..."
@@ -108,13 +125,16 @@ while : ; do
 			# handle custom commands
 			if [[ "${CONTENT:0:1}" == "/" ]] ; then
 				OUTPUT=( `custom_command` )
-				CHANGE="${OUTPUT[0]}"
-				if [[ $CHANGE -eq 1 ]] ; then
+				RET_VAL="${OUTPUT[0]}"
+				if [[ $RET_VAL -eq 1 ]] ; then
 					COLOR="${OUTPUT[1]}"
 					echo -ne "\033[2K"
 					echo -ne "\033[E"
-					$COLOR "Changed color to $COLOR"
+					colorprint `$COLOR "Changed color to $COLOR"`
 					CONTENT=""
+				elif [[ $RET_VAL -eq 2 ]] ; then
+					echo
+					exit 0
 				else
 					echo -ne "\033[2K"
 					echo -ne "\033[E"
@@ -125,17 +145,20 @@ while : ; do
 				#TODO: implement spinner
 				> ~/.aerogram/buffer.txt
 				echo "/STARTOFMESSAGE/" > ~/.aerogram/buffer.txt
+				echo "/FROM/ `whoami`" >> ~/.aerogram/buffer.txt
 				echo "$CONTENT" >> ~/.aerogram/buffer.txt
 				echo "/ENDOFMESSAGE/" >> ~/.aerogram/buffer.txt
 				DATE=`date +%H-%M-%S-%Y-%m-%d`
-				if [[ "$PORT" == "" ]] ; then
-					scp -q ~/.aerogram/buffer.txt $USER@$IP:$PTH/.aerogram/new_$DATE.txt
-				else
-					scp -q -P $PORT ~/.aerogram/buffer.txt $USER@$IP:$PTH/.aerogram/new_$DATE.txt
+				if [[ $RECV -eq 0 ]] ; then
+					if [[ "$PORT" == "" ]] ; then
+						scp -q ~/.aerogram/buffer.txt $USER@$IP:$PTH/.aerogram/new_$DATE.txt
+					else
+						scp -q -P $PORT ~/.aerogram/buffer.txt $USER@$IP:$PTH/.aerogram/new_$DATE.txt
+					fi
 				fi
 				echo -ne "\033[2K"
 				echo -ne "\033[E"
-				$COLOR "$CONTENT"
+				colorprint `$COLOR "$USER"`: "$CONTENT"
 				CONTENT=""
 			fi
 		else

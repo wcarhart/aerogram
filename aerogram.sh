@@ -1,14 +1,11 @@
 #!/bin/bash
 
-#trap cleanup EXIT
+trap cleanup EXIT
 
 # cleanup trap
 cleanup() {
-	if [[ -d ~/.aerogram ]] ; then
-		rm -rf ~/.aerogram
-	fi
-	kill -9 `pgrep -f aerogram_listener.sh`
-	kill -9 `pgrep -f aerogram_renderer.sh`
+	for PID in `pgrep -f aerogram_listener.sh` ; do kill -9 $PID > /dev/null 2>&1 ; done
+	for PID in `pgrep -f aerogram_renderer.sh` ; do kill -9 $PID > /dev/null 2>&1 ; done
 }
 
 # detect os type
@@ -30,7 +27,7 @@ usage() {
 Send messages to remote users via SSH/SCP
 
 Usage:
-  aerogram.sh RECEIVER@IP [-h/--help] [-p/--port PORT] [-u/--user USER]
+  aerogram.sh RECEIVER@IP [-h/--help] [-p/--port PORT] [-u/--user USER] [-r/--recv]
 
 Required arguments:
   RECEIVER        - the username for the user you'd like to chat with
@@ -41,6 +38,7 @@ Optional arguments:
   -p, --port PORT - the port to use (default is '22')
   -u, --user USER - the name of the user you'd like to login as 
                     (default is '`whoami`')
+  -r, --recv      - run aerogram in receive-only mode, where you can only receive messages
 
 Notes:
   - both you and the RECEIVER must be running aerogram.sh
@@ -55,12 +53,17 @@ if [[ $# -lt 1 ]] ; then
 	exit 1
 fi
 
-if [[ "$1" != *@* ]] ; then
+# check if the first argument is to run in receive only mode
+RECV=0
+if [[ "$1" == "-r" || "$1" == "--recv" ]] ; then
+	RECV=1
+elif [[ "$1" != *@* ]] ; then
 	echo "aerogram: err: incorrect argument format, must be in form RECEIVER@IP"
 	echo "  Use 'aerogram.sh -h' for more options"
 	exit 1
 fi
 
+# parse rest of command line arguments
 RECEIVER="${1%@*}"
 IP="${1#*@}"
 PORT=""
@@ -83,6 +86,10 @@ while [[ $# -gt 0 ]] ; do
 			shift
 			shift
 			;;
+		-r|--recv)
+			RECV=1
+			shift
+			;;
 		*)
 			echo "aerogram: err: unknown argument $1"
 			usage
@@ -90,15 +97,22 @@ while [[ $# -gt 0 ]] ; do
 	esac
 done
 
+# set up receiver home path
 PTH=/home/$RECEIVER
 if [[ "$USER" == "root" ]] ; then
 	PTH=/root
 fi
 
+# reset local working directory
+shopt -s nullglob
 mkdir -p ~/.aerogram
 chmod 777 ~/.aerogram
+FILES=( ~/.aerogram/new_* )
+if [[ "${#FILES[@]}" -gt 0 ]] ; then
+	for FILE in "${FILES[@]}" ; do rm $FILE ; done
+fi
 
-# validate environment
+# validate shell and operating system
 OS=`ostype`
 if [[ "`basename $SHELL`" != "bash" ]] ; then
 	echo "aerogram: err: not supported for this shell"
@@ -115,22 +129,26 @@ if [[ $OS != "Linux" && $OS != "MacOS" ]] ; then
 	exit 1
 fi
 
-if [[ "$PORT" == "" ]] ; then
-	PERM=`ssh $USER@$IP stat -c "%a" $PTH/.aerogram`
-else
-	PERM=`ssh $USER@$IP -p $PORT stat -c "%a" $PTH/.aerogram`
-fi
-if [[ "$PERM" == "" ]] ; then
-	echo "aerogram: err: ssh/scp refused for $USER on ${PORT:-22}"
-	echo "  Please ensure that ssh/scp is available for $USER on port ${PORT:-22}"
-	exit 1
-fi
-if [[ "${PERM:2}" != "7" && "${PERM:2}" != "6" ]] ; then
-	echo "aerogram: err: $RECEIVER@$IP:$PTH/.aerogram does not have write permissions"
-	echo "  Please ask $RECEIVER to run 'chmod o+w $PTH/.aerogram'"
-	exit 1
+# validate that receiver is available
+if [[ $RECV -eq 0 ]] ; then
+	if [[ "$PORT" == "" ]] ; then
+		PERM=`ssh $USER@$IP stat -c "%a" $PTH/.aerogram`
+	else
+		PERM=`ssh $USER@$IP -p $PORT stat -c "%a" $PTH/.aerogram`
+	fi
+	if [[ "$PERM" == "" ]] ; then
+		echo "aerogram: err: ssh/scp refused for $USER on ${PORT:-22}"
+		echo "  Please ensure that ssh/scp is available for $USER on port ${PORT:-22}"
+		exit 1
+	fi
+	if [[ "${PERM:2}" != "7" && "${PERM:2}" != "6" ]] ; then
+		echo "aerogram: err: $RECEIVER@$IP:$PTH/.aerogram does not have write permissions"
+		echo "  Please ask $RECEIVER to run 'chmod o+w $PTH/.aerogram'"
+		exit 1
+	fi
 fi
 
+# set commands based on OS
 if [[ $OS == "MacOS" ]] ; then
 	READLINK="greadlink"
 	STAT="gstat"
@@ -139,6 +157,7 @@ else
 	STAT="stat"
 fi
 
+# check dependency shell script permissions
 if [[ ! -f aerogram_listener.sh ]] ; then
 	echo "aerogram: err: no such file 'aerogram_listener.sh'"
 	exit 1
@@ -160,5 +179,6 @@ if [[ "${PERM:0:1}" != "7" ]] ; then
 	exit 1
 fi
 
+# run listener in background and renderer in foreground
 ./aerogram_listener.sh &
-./aerogram_renderer.sh "RECEIVER=$RECEIVER" "IP=$IP" "PORT=$PORT" "USER=$USER"
+./aerogram_renderer.sh "RECEIVER=$RECEIVER" "IP=$IP" "PORT=$PORT" "USER=$USER" "RECV=$RECV"
