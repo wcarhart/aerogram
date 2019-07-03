@@ -188,4 +188,5 @@ fi
 
 # run listener in background and renderer in foreground
 ./aerogram_listener.sh &
+echo "Initializing aerogram..."
 ./aerogram_renderer.sh "RECEIVER=$RECEIVER" "IP=$IP" "PORT=$PORT" "USER=$USER" "RECV=$RECV" "DISP=$DISP"

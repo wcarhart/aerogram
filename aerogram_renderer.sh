@@ -83,11 +83,12 @@ handler() {
 }
 
 custom_command() {
-	# currently supported custom commands: /color, /exit
+	# currently supported custom commands: /color, /exit, /help
 	# return values:
 	#   RET_VAL=0 --> return (do nothing)
 	#   RET_VAL=1 --> change color to RET_ARG
 	#   RET_VAL=2 --> exit
+	#   RET_VAL=3 --> display available commands
 	RET_VAL=0
 	COMM="${CONTENT% *}"
 	ARG="${CONTENT#* }"
@@ -119,11 +120,13 @@ custom_command() {
 		fi
 	elif [[ "$COMM" == "/exit" ]] ; then
 		RET_VAL=2
+	elif [[ "$COMM" == "/help" ]] ; then
+		RET_VAL=3
 	fi
 	echo "$RET_VAL $RET_ARG"
 }
 
-echo "Starting..."
+echo "You are now connected. Type to draft a message, and press Enter to send..."
 while : ; do
 	while IFS='' read -s -n 1 KEY ; do
 		if [[ "$KEY" == "" ]] ; then
@@ -140,6 +143,14 @@ while : ; do
 				elif [[ $RET_VAL -eq 2 ]] ; then
 					echo
 					exit 0
+				elif [[ $RET_VAL -eq 3 ]] ; then
+					echo -ne "\033[2K"
+					echo -ne "\033[E"
+					echo "Available commands are: "
+					echo -e "\t/color COLOR - change your color"
+					echo -e "\t/help        - display this help menu"
+					echo -e "\t/exit        - exit the program"
+					CONTENT=""
 				else
 					echo -ne "\033[2K"
 					echo -ne "\033[E"
