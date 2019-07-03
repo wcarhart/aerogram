@@ -30,6 +30,9 @@ colorprint() {
 	done
 	printf "\n"
 }
+gray() {
+	printf "\033[90m$1\033[0m"
+}
 grey() {
 	printf "\033[90m$1\033[0m"
 }
@@ -122,6 +125,9 @@ custom_command() {
 		elif [[ `echo "$ARG" | tr '[:upper:]' '[:lower:]'` == "teal" ]] ; then
 			RET_ARG="teal"
 			RET_VAL=1
+		elif [[ `echo "$ARG" | tr '[:upper:]' '[:lower:]'` == "help" ]] ; then
+			RET_ARG="help"
+			RET_VAL=1
 		fi
 	elif [[ "$COMM" == "/exit" ]] ; then
 		RET_VAL=2
@@ -143,10 +149,14 @@ while : ; do
 				OUTPUT=( `custom_command` )
 				RET_VAL="${OUTPUT[0]}"
 				if [[ $RET_VAL -eq 1 ]] ; then
-					COLOR="${OUTPUT[1]}"
 					echo -ne "\033[2K"
 					echo -ne "\033[E"
-					colorprint `$COLOR "Changed color to $COLOR"`
+					if [[ "${OUTPUT[1]}" == "help" ]] ; then
+						colorprint "Available colors are `red red`, `blue blue`, `green green`, `yellow yellow`, `pink pink`, `teal teal`, `white white`, `grey grey`"
+					else
+						COLOR="${OUTPUT[1]}"
+						colorprint `$COLOR "Changed color to $COLOR"`
+					fi
 					CONTENT=""
 					echo -ne "$PROMPT"
 				elif [[ $RET_VAL -eq 2 ]] ; then
