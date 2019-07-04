@@ -193,7 +193,6 @@ while : ; do
 						echo -ne "  "
 						scp -q ~/.aerogram/buffer.txt $USER@$IP:$PTH/.aerogram/new_$DATE.txt & \
 						while [ "$(ps a | awk '{print $1}' | grep $!)" ] ; do for X in '-' '/' '|' '\'; do echo -en "\b$X"; sleep 0.1; done; done
-						
 					else
 						echo -n "  "
 						scp -q -P $PORT ~/.aerogram/buffer.txt $USER@$IP:$PTH/.aerogram/new_$DATE.txt & \
