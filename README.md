@@ -72,7 +72,7 @@ If you can `ssh` into another machine, `aerogram` will function properly. Note t
 
 **What setup is required?**
 
-No setup! `aerogram` will alert you if your environment isn't configured correctly, and how to fix it. It is **highly** suggested that you add your `ssh` keys via `ssh-keygen` to the desired host so you don't have to enter your password every time you send a message. If you dont' know how to do this, follow [this tutorial](https://askubuntu.com/a/46935/838525).
+No setup! `aerogram` will alert you if your environment isn't configured correctly, and how to fix it. It is **highly** suggested that you add your `ssh` keys via `ssh-keygen` to the desired host so you don't have to enter your password every time you send a message. If you don't know how to do this, follow [this tutorial](https://askubuntu.com/a/46935/838525).
 
 **Yes, but what are the *actual* requirements?**
 * Only supported for *Bash* on *MacOS* or *Linux*.
