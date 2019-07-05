@@ -43,6 +43,8 @@ if [[ $# -lt 1 ]] ; then
 	exit 1
 fi
 
+# TODO: resolve aliases in 'address.book'
+
 # check if the first argument is to run in receive only mode
 RECV=0
 if [[ "$1" == "-r" || "$1" == "--recv" ]] ; then
