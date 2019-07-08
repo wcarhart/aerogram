@@ -1,5 +1,5 @@
 # [aerogram](https://en.wikipedia.org/wiki/Aerogram)
-Serverless chat via ssh - send messages via ssh without the pain of setting up a server.
+Serverless chat via ssh/scp - send messages via ssh/scp without the pain of setting up a server.
 
 ### Demo
 ![GIF of demo](demo.gif)
