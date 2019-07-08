@@ -94,8 +94,8 @@ while [[ $# -gt 0 ]] ; do
 done
 
 # set up receiver home path
-PTH=/home/$USER
-if [[ "$USER" == "root" ]] ; then
+PTH=/home/$RECEIVER
+if [[ "$RECEIVER" == "root" ]] ; then
 	PTH=/root
 fi
 
