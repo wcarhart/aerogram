@@ -168,9 +168,10 @@ if [[ $RECV -eq 0 ]] ; then
 	# check #3
 	ssh $USER@$IP $PARG [ -d $PTH/.aerogram ]
 	if [[ $? -ne 0 ]] ; then
-		echo "aerogram: err: no such directory $IP:$PTH/.aerogram"
+		echo "aerogram: err: no such directory (or cannot access) $IP:$PTH/.aerogram"
 		echo "  Please ask $RECEIVER to run 'mkdir -p $PTH/.aerogram'"
 		echo "  This often occurs the first time you run aerogram.sh"
+		echo "  If the problem persists, please ensure that there are no restrictions that limit access to $IP:$PTH/.aerogram"
 		exit 1
 	fi
 
