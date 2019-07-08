@@ -59,7 +59,8 @@ Run `aerogram` in *receive-only* mode:
 
 ### Install
 1. Clone this repo with: `git clone https://github.com/wcarhart/aerogram.gif`
-2. Run `./aerogram.gif` for the above help menu.
+2. Run `./aerogram.sh -r` for the first time to verify that your environment is setup correctly.
+3. Run `./aerogram.sh -h` for the above help menu.
 
 ### FAQs
 **How do I send messages between two machines?**
