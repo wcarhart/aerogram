@@ -47,6 +47,9 @@ fi
 RECV=0
 if [[ "$1" == "-r" || "$1" == "--recv" ]] ; then
 	RECV=1
+elif [[ "$1" == "-h" || "$1" == "--help" ]] ; then
+	usage
+	exit 0
 elif [[ "$1" != *@* ]] ; then
 	echo "aerogram: err: incorrect argument format, must be in form RECEIVER@IP"
 	echo "  Use 'aerogram.sh -h' for more options"
@@ -66,6 +69,7 @@ while [[ $# -gt 0 ]] ; do
 	case $KEY in
 		-h|--help)
 			usage
+			exit 0
 			;;
 		-p|--port)
 			PORT="$2"
