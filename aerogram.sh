@@ -93,6 +93,7 @@ while [[ $# -gt 0 ]] ; do
 		*)
 			echo "aerogram: err: unknown argument $1"
 			usage
+			exit 1
 			;;
 	esac
 done
